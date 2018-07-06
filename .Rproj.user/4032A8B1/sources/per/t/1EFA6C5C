@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1530876700688.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3324540938",
+    "id" : "1EFA6C5C",
+    "lastKnownWriteTime" : 1530885274,
+    "last_content_update" : 1530885274997,
+    "path" : "D:/Daniel/football_betting/app.R",
+    "project_path" : "app.R",
+    "properties" : {
+        "cursorPosition" : "61,44",
+        "scrollLine" : "48",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
