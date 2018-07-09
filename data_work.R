@@ -47,15 +47,13 @@ away_teams <- data[, c("Div", "AwayTeam", "FTAG", "HTAG", "Referee", "AS", "AST"
                        "total_HTgoals", "total_FTgoals", "total_shots", "total_shots_ontarget", "total_corners",
                        "total_fouls", "total_yellow", "total_red", "total_cards", "btts")] 
 
+##  add text "home" or "away" in order to make statistics related to that
+home_teams$place <- paste0("home")
+away_teams$place <- paste0("away")
+
 ##  combine data  ##
 names(away_teams) <- names(home_teams)
 data_full <- bind_rows(home_teams, away_teams)
-
-##  change colnames  ##
-#colnames(data_full) <- c("League", "Team", "Team goals", "HT Team goals", "Referee", "Team Shots", "Team Shots on target",
-                         #"Team corners", "Team fouls", "Team yellow cards", "Team red cards", "HT goals", "Total goals", 
-                         #"Total shots", "Total shots on target", "Total corners", "Total fouls", "Total yellow cards",
-                         #"Total red cards", "BTTS")
 
 ##  change league names  ##
 data_full$Div <- as.factor(data_full$Div)
@@ -71,10 +69,19 @@ levels(data_full$Div) <- c("Belgium - Jupiler League", "Germany - Bundesliga", "
 #                        calculations for bets                           #
 #------------------------------------------------------------------------#
 
+#---------------------------------------------------------#
+#                         goals                           #
+#---------------------------------------------------------#
+
 data_goals <- data_full %>% 
   group_by(Div, HomeTeam) %>% 
   summarize(share_btts = sum(btts) / length(btts),
             goals_per_game = sum(total_FTgoals) / length(btts),
+            teamgoals_per_game = sum(FTHG) / length(btts),
+            firsthalfgoals_per_game = sum(total_HTgoals) / length(btts),
+            firsthalfteamgoals_per_game = sum(HTHG) / length(btts),
+            secondhalfgoals_per_game = sum(total_FTgoals - total_HTgoals) / length(btts),
+            secondhalfteamgoals_per_game = sum(FTHG - HTHG) / length(btts),
             share_over0.5HT_total_goals = sum(total_HTgoals > 0) / length(btts),
             share_over1.5HT_total_goals = sum(total_HTgoals > 1) / length(btts),
             share_over2.5HT_total_goals = sum(total_HTgoals > 2) / length(btts),
@@ -84,9 +91,72 @@ data_goals <- data_full %>%
             share_over3.5FT_total_goals = sum(total_FTgoals > 3) / length(btts),
             share_over0.5secondhalf_total_goals = sum(total_FTgoals - total_HTgoals > 0) / length(btts),
             share_over1.5secondhalf_total_goals = sum(total_FTgoals - total_HTgoals > 1) / length(btts),
-            share_over0.5FT_team_goals = sum(FTHG > 0) /length(btts),
-            share_over1.5FT_team_goals = sum(FTHG > 1) /length(btts),
-            share_over2.5FT_team_goals = sum(FTHG > 2) /length(btts))
+            share_over2.5secondhalf_total_goals = sum(total_FTgoals - total_HTgoals > 2) / length(btts),
+            share_over0.5FT_team_goals = sum(FTHG > 0) / length(btts),
+            share_over1.5FT_team_goals = sum(FTHG > 1) / length(btts),
+            share_over2.5FT_team_goals = sum(FTHG > 2) / length(btts),
+            share_over0.5HT_team_goals = sum(HTHG > 0) / length(btts),
+            share_over1.5HT_team_goals = sum(HTHG > 1) / length(btts),
+            share_over2.5HT_team_goals = sum(HTHG > 2) / length(btts),
+            share_over0.5secondhalf_team_goals = sum(FTHG - HTHG > 0) / length(btts),
+            share_over1.5secondhalf_team_goals = sum(FTHG - HTHG > 1) / length(btts),
+            share_over2.5secondhalf_team_goals = sum(FTHG - HTHG > 2) / length(btts))
+
+data_goals_place <- data_full %>% 
+  group_by(Div, HomeTeam, place) %>% 
+    summarize(share_btts_place = sum(btts) / length(btts),
+              goals_per_game_place = sum(total_FTgoals) / length(btts),
+              teamgoals_per_game_place = sum(FTHG) / length(btts),
+              firsthalfgoals_per_game_place = sum(total_HTgoals) / length(btts),
+              firsthalfteamgoals_per_game_place = sum(HTHG) / length(btts),
+              secondhalfgoals_per_game_place = sum(total_FTgoals - total_HTgoals) / length(btts),
+              secondhalfteamgoals_per_game_place = sum(FTHG - HTHG) / length(btts),
+              share_over0.5HT_total_goals_place = sum(total_HTgoals > 0) / length(btts),
+              share_over1.5HT_total_goals_place = sum(total_HTgoals > 1) / length(btts),
+              share_over2.5HT_total_goals_place = sum(total_HTgoals > 2) / length(btts),
+              share_over0.5FT_total_goals_place = sum(total_FTgoals > 0) / length(btts),
+              share_over1.5FT_total_goals_place = sum(total_FTgoals > 1) / length(btts),
+              share_over2.5FT_total_goals_place = sum(total_FTgoals > 2) / length(btts),
+              share_over3.5FT_total_goals_place = sum(total_FTgoals > 3) / length(btts),
+              share_over0.5secondhalf_total_goals_place = sum(total_FTgoals - total_HTgoals > 0) / length(btts),
+              share_over1.5secondhalf_total_goals_place = sum(total_FTgoals - total_HTgoals > 1) / length(btts),
+              share_over2.5secondhalf_total_goals_place = sum(total_FTgoals - total_HTgoals > 2) / length(btts),
+              share_over0.5FT_team_goals_place = sum(FTHG > 0) / length(btts),
+              share_over1.5FT_team_goals_place = sum(FTHG > 1) / length(btts),
+              share_over2.5FT_team_goals_place = sum(FTHG > 2) / length(btts),
+              share_over0.5HT_team_goals_place = sum(HTHG > 0) / length(btts),
+              share_over1.5HT_team_goals_place = sum(HTHG > 1) / length(btts),
+              share_over2.5HT_team_goals_place = sum(HTHG > 2) / length(btts),
+              share_over0.5secondhalf_team_goals_place = sum(FTHG - HTHG > 0) / length(btts),
+              share_over1.5secondhalf_team_goals_place = sum(FTHG - HTHG > 1) / length(btts),
+              share_over2.5secondhalf_team_goals_place = sum(FTHG - HTHG > 2) / length(btts))
+
+##  add column place to first data set  ##
+data_goals$place <- paste0("all")
+
+## change position in order to have both datasets equal
+data_goals_place <- data_goals_place[, c("Div", "HomeTeam", "share_btts_place", "goals_per_game_place", 
+                                         "teamgoals_per_game_place", "firsthalfgoals_per_game_place", 
+                                         "firsthalfteamgoals_per_game_place", "secondhalfgoals_per_game_place",
+                                         "secondhalfteamgoals_per_game_place", "share_over0.5HT_total_goals_place", 
+                                         "share_over1.5HT_total_goals_place", "share_over2.5HT_total_goals_place", 
+                                         "share_over0.5FT_total_goals_place", "share_over1.5FT_total_goals_place",
+                                         "share_over2.5FT_total_goals_place", "share_over3.5FT_total_goals_place", 
+                                         "share_over0.5secondhalf_total_goals_place", "share_over1.5secondhalf_total_goals_place",
+                                         "share_over2.5secondhalf_total_goals_place", "share_over0.5FT_team_goals_place", 
+                                         "share_over1.5FT_team_goals_place", "share_over2.5FT_team_goals_place", 
+                                         "share_over0.5HT_team_goals_place", "share_over1.5HT_team_goals_place", 
+                                         "share_over2.5HT_team_goals_place", "share_over0.5secondhalf_team_goals_place",
+                                         "share_over1.5secondhalf_team_goals_place", "share_over2.5secondhalf_team_goals_place", 
+                                         "place")]
+
+##  merge datasets  ##
+names(data_goals_place) <- names(data_goals)
+data_goals <- bind_rows(data_goals, data_goals_place)
+
+#---------------------------------------------------------#
+#                         cards                           #
+#---------------------------------------------------------#
 
 data_cards <- data_full %>% 
   group_by(Div, HomeTeam) %>% 
@@ -102,6 +172,10 @@ data_cards <- data_full %>%
             share_over3.5_total_cards = sum(total_cards > 3) / length(btts),
             share_over4.5_total_cards = sum(total_cards > 4) / length(btts),
             share_over5.5_total_cards = sum(total_cards > 5) / length(btts))
+
+#---------------------------------------------------------#
+#                        corners                          #
+#---------------------------------------------------------#
 
 data_corners <- data_full %>% 
   group_by(Div, HomeTeam) %>% 
