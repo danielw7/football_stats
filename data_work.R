@@ -21,8 +21,20 @@ SheetList <- lapply(sheets, read.xlsx, xlsxFile = tmp)
 names(SheetList) <- sheets
 data <- do.call("bind_rows", SheetList)
 
+##  für Referee-Daten, nicht nur aktuelles Jahr, sondern auch Vorjahr!
+
+tmp1 <- tempfile(fileext = ".xlsx")
+download.file(url = "http://football-data.co.uk/mmz4281/1718/all-euro-data-2017-2018.xlsx", destfile = tmp1, mode = "wb")
+
+sheets1 <- getSheetNames(tmp1)
+SheetList1 <- lapply(sheets1, read.xlsx, xlsxFile = tmp1)
+names(SheetList1) <- sheets1
+data_refs <- do.call("bind_rows", SheetList1)
+
+data_refs <- bind_rows(data, data_refs)
+
 #------------------------------------------------------------------------#
-#                        data transformation                             #
+#                        data transformation teams                       #
 #------------------------------------------------------------------------#
 
 ##  add columns for total cards, goals, corners, cards, shots, btts
@@ -64,6 +76,27 @@ levels(data_full$Div) <- c("Belgium - Jupiler League", "Germany - Bundesliga", "
                               "Portugal - Primeira Liga", "Scotlang - Premiership", "Scotland - Championship", 
                               "Scotland - League One", "Scotland - League Two", "Spain - La Liga", "Spain - La Liga 2", 
                               "Turkey - Super Lig")
+
+#------------------------------------------------------------------------#
+#                        data transformation refs                        #
+#------------------------------------------------------------------------#
+
+##  add columns for total cards, goals, corners, cards, shots, btts
+
+data_full_ref <- data_refs %>%
+  mutate(total_yellow = rowSums(data_refs[, c("HY", "AY")])) %>%
+  mutate(total_red = rowSums(data_refs[, c("HR", "AR")])) %>% 
+  mutate(total_cards = rowSums(data_refs[, c("HR", "AR", "HY", "AY")]))
+
+##  change league names  ##
+data_full_ref$Div <- as.factor(data_full_ref$Div)
+levels(data_full_ref$Div) <- c("Belgium - Jupiler League", "Germany - Bundesliga", "Germany - 2. Bundesliga", 
+                           "England - Premier League", "England - Championship", "England - League One", 
+                           "England - League Two", "England - National League", "France - Ligue 1", "France - Ligue 2",
+                           "Greece - Super League", "Italy - Serie A", "Italy - Serie B", "Netherlands - Eredivisie",
+                           "Portugal - Primeira Liga", "Scotlang - Premiership", "Scotland - Championship", 
+                           "Scotland - League One", "Scotland - League Two", "Spain - La Liga", "Spain - La Liga 2", 
+                           "Turkey - Super Lig")
 
 #------------------------------------------------------------------------#
 #                        calculations for bets                           #
@@ -173,6 +206,36 @@ data_cards <- data_full %>%
             share_over4.5_total_cards = sum(total_cards > 4) / length(btts),
             share_over5.5_total_cards = sum(total_cards > 5) / length(btts))
 
+data_cards_place <- data_full %>% 
+  group_by(Div, HomeTeam, place) %>% 
+  summarize(team_cards_per_game_place = sum(c(HY, HR)) / length(btts),
+            share_over0.5_team_cards_place = sum(c(HY, HR) > 0) / length(btts),
+            share_over1.5_team_cards_place = sum(c(HY, HR) > 1) / length(btts),
+            share_over2.5_team_cards_place = sum(c(HY, HR) > 2) / length(btts),
+            share_team_red_card_place = sum(HR > 0) / length(btts),
+            total_cards_per_game_place = sum(total_cards) / length(btts),
+            share_over0.5_total_cards_place = sum(total_cards > 0) / length(btts),
+            share_over1.5_total_cards_place = sum(total_cards > 1) / length(btts),
+            share_over2.5_total_cards_place = sum(total_cards > 2) / length(btts),
+            share_over3.5_total_cards_place = sum(total_cards > 3) / length(btts),
+            share_over4.5_total_cards_place = sum(total_cards > 4) / length(btts),
+            share_over5.5_total_cards_place = sum(total_cards > 5) / length(btts))
+
+##  add column place to first data set  ##
+data_cards$place <- paste0("all")
+
+## change position in order to have both datasets equal
+data_cards_place <- data_cards_place[, c("Div", "HomeTeam", "team_cards_per_game_place", "share_over0.5_team_cards_place", 
+                                         "share_over1.5_team_cards_place", "share_over2.5_team_cards_place", 
+                                         "share_team_red_card_place", "total_cards_per_game_place", 
+                                         "share_over0.5_total_cards_place", "share_over1.5_total_cards_place",
+                                         "share_over2.5_total_cards_place", "share_over3.5_total_cards_place", 
+                                         "share_over4.5_total_cards_place", "share_over5.5_total_cards_place", "place")]
+
+##  merge datasets  ##
+names(data_cards_place) <- names(data_cards)
+data_cards <- bind_rows(data_cards, data_cards_place)
+
 #---------------------------------------------------------#
 #                        corners                          #
 #---------------------------------------------------------#
@@ -203,3 +266,68 @@ data_corners <- data_full %>%
             share_over10.5_total_corners = sum(total_corners > 10) / length(btts),
             share_over11.5_total_corners = sum(total_corners > 11) / length(btts),
             share_over12.5_total_corners = sum(total_corners > 12) / length(btts))
+
+data_corners_place <- data_full %>% 
+  group_by(Div, HomeTeam, place) %>% 
+  summarize(team_corners_per_game_place = sum(HC) / length(btts),
+            share_over0.5_team_corners_place = sum(HC > 0) / length(btts),
+            share_over1.5_team_corners_place = sum(HC > 1) / length(btts),
+            share_over2.5_team_corners_place = sum(HC > 2) / length(btts),
+            share_over3.5_team_corners_place = sum(HC > 3) / length(btts),
+            share_over4.5_team_corners_place = sum(HC > 4) / length(btts),
+            share_over5.5_team_corners_place = sum(HC > 5) / length(btts),
+            share_over6.5_team_corners_place = sum(HC > 6) / length(btts),
+            share_over7.5_team_corners_place = sum(HC > 7) / length(btts),
+            share_over8.5_team_corners_place = sum(HC > 8) / length(btts),
+            total_corners_per_game_place = sum(total_corners) / length(btts),
+            share_over0.5_total_corners_place = sum(total_corners > 0) / length(btts),
+            share_over1.5_total_corners_place = sum(total_corners > 1) / length(btts),
+            share_over2.5_total_corners_place = sum(total_corners > 2) / length(btts),
+            share_over3.5_total_corners_place = sum(total_corners > 3) / length(btts),
+            share_over4.5_total_corners_place = sum(total_corners > 4) / length(btts),
+            share_over5.5_total_corners_place = sum(total_corners > 5) / length(btts),
+            share_over6.5_total_corners_place = sum(total_corners > 6) / length(btts),
+            share_over7.5_total_corners_place = sum(total_corners > 7) / length(btts),
+            share_over8.5_total_corners_place = sum(total_corners > 8) / length(btts),
+            share_over9.5_total_corners_place = sum(total_corners > 9) / length(btts),
+            share_over10.5_total_corners_place = sum(total_corners > 10) / length(btts),
+            share_over11.5_total_corners_place = sum(total_corners > 11) / length(btts),
+            share_over12.5_total_corners_place = sum(total_corners > 12) / length(btts))
+
+##  add column place to first data set  ##
+data_corners$place <- paste0("all")
+
+## change position in order to have both datasets equal
+data_corners_place <- data_corners_place[, c("Div", "HomeTeam", "team_corners_per_game_place", 
+                                             "share_over0.5_team_corners_place", "share_over1.5_team_corners_place", 
+                                             "share_over2.5_team_corners_place", "share_over3.5_team_corners_place", 
+                                             "share_over4.5_team_corners_place", "share_over5.5_team_corners_place", 
+                                             "share_over6.5_team_corners_place", "share_over7.5_team_corners_place", 
+                                             "share_over8.5_team_corners_place", "total_corners_per_game_place", 
+                                             "share_over0.5_total_corners_place", "share_over1.5_total_corners_place", 
+                                             "share_over2.5_total_corners_place", "share_over3.5_total_corners_place", 
+                                             "share_over4.5_total_corners_place", "share_over5.5_total_corners_place", 
+                                             "share_over6.5_total_corners_place", "share_over7.5_total_corners_place", 
+                                             "share_over8.5_total_corners_place", "share_over9.5_total_corners_place", 
+                                             "share_over10.5_total_corners_place", "share_over11.5_total_corners_place", 
+                                             "share_over12.5_total_corners_place", "place")]
+
+##  merge datasets  ##
+names(data_corners_place) <- names(data_corners)
+data_corners <- bind_rows(data_corners, data_corners_place)
+
+#---------------------------------------------------------#
+#                        referees                         #
+#---------------------------------------------------------#
+data_ref <- data_full_ref %>% 
+  group_by(Referee) %>% 
+  summarize(total_cards_per_game = sum(total_cards) / length(Referee),
+            yellow_cards_per_game = sum(total_yellow) / length(Referee),
+            red_cards_per_game = sum(total_red) / length(Referee),
+            share_over0.5_yellow_cards = sum(total_yellow > 0) / length(Referee),
+            share_over1.5_yellow_cards = sum(total_yellow > 1) / length(Referee),
+            share_over2.5_yellow_cards = sum(total_yellow > 2) / length(Referee),
+            share_over3.5_yellow_cards = sum(total_yellow > 3) / length(Referee),
+            share_over4.5_yellow_cards = sum(total_yellow > 4) / length(Referee),
+            share_over5.5_yellow_cards = sum(total_yellow > 5) / length(Referee),
+            share_over0.5_red_cards = sum(total_red > 0) / length(Referee))
