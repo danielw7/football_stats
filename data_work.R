@@ -194,9 +194,10 @@ data_goals <- bind_rows(data_goals, data_goals_place)
 data_cards <- data_full %>% 
   group_by(Div, HomeTeam) %>% 
   summarize(team_cards_per_game = sum(c(HY, HR)) / length(btts),
-            share_over0.5_team_cards = sum(c(HY, HR) > 0) / length(btts),
-            share_over1.5_team_cards = sum(c(HY, HR) > 1) / length(btts),
-            share_over2.5_team_cards = sum(c(HY, HR) > 2) / length(btts),
+            share_over0.5_team_cards = sum(HY > 0 | HR > 0) / length(btts),
+            share_over1.5_team_cards = sum(HY > 1 | HR > 1) / length(btts),
+            share_over2.5_team_cards = sum(HY > 2 | HR > 2) / length(btts),
+            share_over3.5_team_cards = sum(HY > 3 | HR > 3) / length(btts),
             share_team_red_card = sum(HR > 0) / length(btts),
             total_cards_per_game = sum(total_cards) / length(btts),
             share_over0.5_total_cards = sum(total_cards > 0) / length(btts),
@@ -209,9 +210,10 @@ data_cards <- data_full %>%
 data_cards_place <- data_full %>% 
   group_by(Div, HomeTeam, place) %>% 
   summarize(team_cards_per_game_place = sum(c(HY, HR)) / length(btts),
-            share_over0.5_team_cards_place = sum(c(HY, HR) > 0) / length(btts),
-            share_over1.5_team_cards_place = sum(c(HY, HR) > 1) / length(btts),
-            share_over2.5_team_cards_place = sum(c(HY, HR) > 2) / length(btts),
+            share_over0.5_team_cards_place = sum(HY > 0 | HR > 0) / length(btts),
+            share_over1.5_team_cards_place = sum(HY > 1 | HR > 1) / length(btts),
+            share_over2.5_team_cards_place = sum(HY > 2 | HR > 2) / length(btts),
+            share_over3.5_team_cards_place = sum(HY > 3 | HR > 3) / length(btts),
             share_team_red_card_place = sum(HR > 0) / length(btts),
             total_cards_per_game_place = sum(total_cards) / length(btts),
             share_over0.5_total_cards_place = sum(total_cards > 0) / length(btts),
@@ -227,6 +229,7 @@ data_cards$place <- paste0("all")
 ## change position in order to have both datasets equal
 data_cards_place <- data_cards_place[, c("Div", "HomeTeam", "team_cards_per_game_place", "share_over0.5_team_cards_place", 
                                          "share_over1.5_team_cards_place", "share_over2.5_team_cards_place", 
+                                         "share_over2.5_team_cards_place",
                                          "share_team_red_card_place", "total_cards_per_game_place", 
                                          "share_over0.5_total_cards_place", "share_over1.5_total_cards_place",
                                          "share_over2.5_total_cards_place", "share_over3.5_total_cards_place", 
@@ -321,7 +324,8 @@ data_corners <- bind_rows(data_corners, data_corners_place)
 #---------------------------------------------------------#
 data_ref <- data_full_ref %>% 
   group_by(Referee) %>% 
-  summarize(total_cards_per_game = sum(total_cards) / length(Referee),
+  summarize(no_games_refereed = length(Referee) / 2,
+            total_cards_per_game = sum(total_cards) / length(Referee),
             yellow_cards_per_game = sum(total_yellow) / length(Referee),
             red_cards_per_game = sum(total_red) / length(Referee),
             share_over0.5_yellow_cards = sum(total_yellow > 0) / length(Referee),

@@ -51,6 +51,9 @@ ui <- fluidPage(
       
       tabPanel("Goals",
                br(),
+               tags$head(
+                 tags$style(type='text/css', 
+                            ".nav-tabs {font-size: 16px} ")),
                tabsetPanel(
                  
                  #------------------------------------------------------------------------------------#
@@ -92,12 +95,10 @@ ui <- fluidPage(
                  
                  tabPanel("Total Cards",
                           br(), br(),
-                          htmlOutput("text_match_cards"), br(),br(),
                           (DT::dataTableOutput("table_match_cards"))),
                           
                  tabPanel("Team Cards",
                           br(), br(),
-                          htmlOutput("text_team_cards"), br(),br(),
                           (DT::dataTableOutput("table_team_cards")))
                )
       ),
@@ -112,12 +113,10 @@ ui <- fluidPage(
                  
                  tabPanel("Total Corners",
                           br(), br(),
-                          htmlOutput("text_match_corners"), br(),br(),
                           (DT::dataTableOutput("table_match_corners"))),
                           
                  tabPanel("Team Corners",
                           br(), br(),
-                          htmlOutput("text_team_corners"), br(),br(),
                           (DT::dataTableOutput("table_team_corners")))
                  
                )
@@ -217,7 +216,7 @@ server <- function(input, output, session) {
   #------------------------------------------------------------------------------------#
   
   output$text_total_goals <- renderText({
-    print(paste0("<b>Match Goals</b>"))
+    print(paste0("<span style = color:aqua><b>Match Goals<b></span>"))
   })
   
   output$table_goals_ft <- DT::renderDataTable({
@@ -243,7 +242,7 @@ server <- function(input, output, session) {
   #------------------------------------------------------------------------------------#
   
   output$text_team_goals <- renderText({
-    print(paste0("<b>Team Goals</b>"))
+    print(paste0("<span style = color:aqua><b>Team Goals<b></span>"))
   })
   
   output$table_teamgoals_ft <- DT::renderDataTable({
@@ -268,7 +267,7 @@ server <- function(input, output, session) {
   #------------------------------------------------------------------------------------#
   
   output$text_total_firsthalf_goals <- renderText({
-    print(paste0("<b>First Half Match Goals</b>"))
+    print(paste0("<span style = color:aqua><b>First Half Match Goals<b></span>"))
   })
   
   output$table_goals_firsthalf <- DT::renderDataTable({
@@ -292,7 +291,7 @@ server <- function(input, output, session) {
   #------------------------------------------------------------------------------------#
   
   output$text_firsthalf_teamgoals <- renderText({
-    print(paste0("<b>First Half Team Goals</b>"))
+    print(paste0("<span style = color:aqua><b>First Half Team Goals</b></span>"))
   })
   
   output$table_teamgoals_firsthalf <- DT::renderDataTable({
@@ -317,7 +316,7 @@ server <- function(input, output, session) {
   #------------------------------------------------------------------------------------#
   
   output$text_total_secondhalf_goals <- renderText({
-    print(paste0("<b>Second Half Match Goals</b>"))
+    print(paste0("<span style = color:aqua><b>Second Half Match Goals</b></span>"))
   })
   
   output$table_goals_secondhalf <- DT::renderDataTable({
@@ -342,7 +341,7 @@ server <- function(input, output, session) {
   #------------------------------------------------------------------------------------#
   
   output$text_secondhalf_teamgoals <- renderText({
-    print(paste0("<b>Second Half Team Goals</b>"))
+    print(paste0("<span style = color:aqua><b>Second Half Team Goals</b></span>"))
   })
   
   output$table_teamgoals_secondhalf <- DT::renderDataTable({
@@ -368,7 +367,7 @@ server <- function(input, output, session) {
   #------------------------------------------------------------------------------------#
   
   output$text_btts <- renderText({
-    print(paste0("<b>Share of games where both teams scored</b>"))
+    print(paste0("<span style = color:aqua><b>Share of games where both teams scored</b></span>"))
   })
   
   output$table_goals_btts <- DT::renderDataTable({
@@ -385,21 +384,124 @@ server <- function(input, output, session) {
   })
   
   #------------------------------------------------------------------------------------#
+  #                               add table for total cards                            #
+  #------------------------------------------------------------------------------------#
+  
+  output$table_match_cards <- DT::renderDataTable({
+    data_cards_app()[, c("HomeTeam", "place", "total_cards_per_game", "share_over0.5_total_cards", 
+                         "share_over1.5_total_cards", "share_over2.5_total_cards", "share_over3.5_total_cards", 
+                         "share_over4.5_total_cards", "share_over5.5_total_cards")] %>%
+      datatable(
+        style = "bootstrap",
+        colnames = c("Team", "Playing site", "Average cards per game", "% of games >0.5 cards", 
+                     "% of games >1.5 cards", "% of games >2.5 cards", 
+                     "% of games >3.5 cards", "% of games >4.5 cards", "% of games >5.5 cards"),
+        options = list(dom = "t",  autoWidth = TRUE, scrollX = TRUE, pageLength = 500, 
+                       columnDefs = list(list(targets = c(0), visible = TRUE, width = "100"),
+                                         list(targets = c(1), visible = TRUE, width = "60"),
+                                         list(targets = c(2:8), visible = TRUE, width = "130"))), 
+        rownames = FALSE) %>%
+      formatRound(columns = c("total_cards_per_game"), 2) %>% 
+      formatPercentage(c("share_over0.5_total_cards", "share_over1.5_total_cards", "share_over2.5_total_cards", 
+                         "share_over3.5_total_cards", "share_over4.5_total_cards", "share_over5.5_total_cards"), 0)
+  })
+  
+  #------------------------------------------------------------------------------------#
+  #                               add table for total cards                            #
+  #------------------------------------------------------------------------------------#
+  
+ output$table_team_cards <- DT::renderDataTable({
+    data_cards_app()[, c("HomeTeam", "place", "team_cards_per_game", "share_over0.5_team_cards", 
+                         "share_over1.5_team_cards", 
+                         "share_over2.5_team_cards", "share_over3.5_team_cards")] %>%
+      datatable(
+        style = "bootstrap",
+        colnames = c("Team", "Playing site", "Average team cards per game", "% of games >0.5 team cards", 
+                     "% of games >1.5 team cards", 
+                     "% of games >2.5 team cards", "% of games >3.5 team cards"),
+        options = list(dom = "t",  autoWidth = TRUE, scrollX = TRUE, pageLength = 500, 
+                       columnDefs = list(list(targets = c(0), visible = TRUE, width = "100"),
+                                         list(targets = c(1), visible = TRUE, width = "60"),
+                                         list(targets = c(2:6), visible = TRUE, width = "130"))), 
+        rownames = FALSE) %>%
+      formatRound(columns = c("team_cards_per_game"), 2) %>% 
+      formatPercentage(c("share_over0.5_team_cards", "share_over1.5_team_cards", "share_over2.5_team_cards", 
+                         "share_over3.5_team_cards"), 0)
+  })
+ 
+ #------------------------------------------------------------------------------------#
+ #                              add table for total corners                           #
+ #------------------------------------------------------------------------------------#
+ 
+ output$table_match_corners <- DT::renderDataTable({
+   data_corners_app()[, c("HomeTeam", "place", "total_corners_per_game", "share_over0.5_total_corners", 
+                        "share_over1.5_total_corners", "share_over2.5_total_corners", "share_over3.5_total_corners", 
+                        "share_over4.5_total_corners", "share_over5.5_total_corners", "share_over6.5_total_corners",
+                        "share_over7.5_total_corners", "share_over8.5_total_corners", "share_over9.5_total_corners",
+                        "share_over10.5_total_corners", "share_over11.5_total_corners", "share_over12.5_total_corners")] %>%
+     datatable(
+       style = "bootstrap",
+       colnames = c("Team", "Playing site", "Average corners per game", "% of games >0.5 corners", 
+                    "% of games >1.5 corners", "% of games >2.5 corners", "% of games >3.5 corners", 
+                    "% of games >4.5 corners", "% of games >5.5 corners", "% of games >6.5 corners", 
+                    "% of games >7.5 corners", "% of games >8.5 corners", "% of games >9.5 corners",
+                    "% of games >10.5 corners", "% of games >11.5 corners", "% of games >12.5 corners"),
+       options = list(dom = "t",  autoWidth = TRUE, scrollX = TRUE, pageLength = 500, 
+                      columnDefs = list(list(targets = c(0), visible = TRUE, width = "100"),
+                                        list(targets = c(1), visible = TRUE, width = "60"),
+                                        list(targets = c(2:15), visible = TRUE, width = "130"))), 
+       rownames = FALSE) %>%
+     formatRound(columns = c("total_corners_per_game"), 2) %>% 
+     formatPercentage(c("share_over0.5_total_corners", "share_over1.5_total_corners", "share_over2.5_total_corners", 
+                        "share_over3.5_total_corners", "share_over4.5_total_corners", "share_over5.5_total_corners", 
+                        "share_over6.5_total_corners", "share_over7.5_total_corners", "share_over8.5_total_corners", 
+                        "share_over9.5_total_corners", "share_over10.5_total_corners", "share_over11.5_total_corners", 
+                        "share_over12.5_total_corners"), 0)
+ })
+ 
+ #------------------------------------------------------------------------------------#
+ #                              add table for team corners                            #
+ #------------------------------------------------------------------------------------#
+ 
+ output$table_team_corners <- DT::renderDataTable({
+   data_corners_app()[, c("HomeTeam", "place", "team_corners_per_game", "share_over0.5_team_corners", 
+                        "share_over1.5_team_corners", "share_over2.5_team_corners", "share_over3.5_team_corners",
+                        "share_over4.5_team_corners", "share_over5.5_team_corners","share_over6.5_team_corners",
+                        "share_over7.5_team_corners", "share_over8.5_team_corners")] %>%
+     datatable(
+       style = "bootstrap",
+       colnames = c("Team", "Playing site", "Average team corners per game", "% of games >0.5 team corners", 
+                    "% of games >1.5 team corners", "% of games >2.5 team corners", "% of games >3.5 team corners",
+                    "% of games >4.5 team corners", "% of games >5.5 team corners", "% of games >6.5 team corners",
+                    "% of games >7.5 team corners", "% of games >8.5 team corners"),
+       options = list(dom = "t",  autoWidth = TRUE, scrollX = TRUE, pageLength = 500, 
+                      columnDefs = list(list(targets = c(0), visible = TRUE, width = "100"),
+                                        list(targets = c(1), visible = TRUE, width = "60"),
+                                        list(targets = c(2:11), visible = TRUE, width = "130"))), 
+       rownames = FALSE) %>%
+     formatRound(columns = c("team_corners_per_game"), 2) %>% 
+     formatPercentage(c("team_corners_per_game", "share_over0.5_team_corners", 
+                        "share_over1.5_team_corners", "share_over2.5_team_corners", "share_over3.5_team_corners",
+                        "share_over4.5_team_corners", "share_over5.5_team_corners","share_over6.5_team_corners",
+                        "share_over7.5_team_corners", "share_over8.5_team_corners"), 0)
+ })
+  
+  #------------------------------------------------------------------------------------#
   #                               add table for referees 1                             #
   #------------------------------------------------------------------------------------#
   
   output$text_ref1 <- renderText({
-    print(paste0("<b>Cards per game and share of games with red cards</b>"))
+    print(paste0("<span style = color:aqua><b>Cards per game and share of games with red cards</b></span>"))
   })
   
   output$table_referees1 <- DT::renderDataTable({
-    data_ref_app()[, c("Referee", "total_cards_per_game", "yellow_cards_per_game", "red_cards_per_game", 
-                       "share_over0.5_red_cards")] %>%
+    data_ref_app()[, c("Referee", "no_games_refereed", "total_cards_per_game", "yellow_cards_per_game", 
+                       "red_cards_per_game", "share_over0.5_red_cards")] %>%
       datatable(
         style = "bootstrap",
-        colnames = c("Referee", "Average total cards per game", "Average yellow cards per game", 
+        colnames = c("Referee", "No of games", "Average total cards per game", "Average yellow cards per game", 
                      "Average red cards per game", "% of games with >0.5 red cards"),
-        options = list(dom = "t",  autoWidth = TRUE, scrollX = TRUE, pageLength = 40, 
+        options = list(dom = "t",  autoWidth = TRUE, scrollX = TRUE, pageLength = 50, 
                        columnDefs = list(list(targets = c(0), visible = TRUE, width = "100"),
                                          list(targets = c(1:4), visible = TRUE, width = "130"))), 
         rownames = FALSE) %>%
@@ -408,11 +510,11 @@ server <- function(input, output, session) {
   })
   
   #------------------------------------------------------------------------------------#
-  #                               add table for referees 1                             #
+  #                               add table for referees 2                             #
   #------------------------------------------------------------------------------------#
   
   output$text_ref2 <- renderText({
-    print(paste0("<b>Share of games with yellow cards</b>"))
+    print(paste0("<span style = color:aqua><b>Share of games with yellow cards</b></span>"))
   })
   
   output$table_referees2 <- DT::renderDataTable({
@@ -424,7 +526,7 @@ server <- function(input, output, session) {
         colnames = c("Referee", "% of games with >0.5 yellow cards", "% of games with >1.5 yellow cards", 
                      "% of games with >2.5 yellow cards", "% of games with >3.5 yellow cards",
                      "% of games with >4.5 yellow cards", "% of games with >5.5 yellow cards"),
-        options = list(dom = "t",  autoWidth = TRUE, scrollX = TRUE, pageLength = 40, 
+        options = list(dom = "t",  autoWidth = TRUE, scrollX = TRUE, pageLength = 50, 
                        columnDefs = list(list(targets = c(0), visible = TRUE, width = "100"),
                                          list(targets = c(1:6), visible = TRUE, width = "130"))), 
         rownames = FALSE) %>%
